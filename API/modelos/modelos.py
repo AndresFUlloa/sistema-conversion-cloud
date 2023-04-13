@@ -1,22 +1,24 @@
 import datetime
-import psycopg2
 from flask_sqlalchemy import SQLAlchemy
-from marshmallow import fields, Schema
+from marshmallow import fields
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
 import enum
 
-db=SQLAlchemy()
+db = SQLAlchemy()
+
 
 class EstadoTarea(enum.Enum):
     UPLOADED = 1
     PROCESSED = 2
+
 
 class EnumADiccionario(fields.Field):
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
         return {'llave': value.name, 'valor': value.value}
+
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)

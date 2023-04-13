@@ -16,6 +16,8 @@ tarea_schema = TareaSchema()
 class VistaSignUp(Resource):
 
     def post(self):
+        from pprint import pprint
+        pprint(request)
         if request.json['password1'] != request.json['password2']:
             return 'Las contraseñas no coinciden', 400
 
