@@ -9,7 +9,7 @@ from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from modelos import db, User, Tarea, TareaSchema, EstadoTarea
-from app import ROOT_PATH
+
 
 tarea_schema = TareaSchema()
 
@@ -82,7 +82,7 @@ class VistaTareas(Resource):
 
         db.session.add(nueva_tarea)
 
-        target_folder = os.path.join(ROOT_PATH, '/files/{}/'.format(usuario.username))
+        target_folder = os.path.join("files",usuario.username)
         if not os.path.exists(target_folder):
             os.makedirs(target_folder)
 
@@ -134,6 +134,6 @@ class VistaArchivos(Resource):
             return 'Archivo no encontrado', 404
 
         file_name += tarea.old_format if tarea.estado == EstadoTarea.UPLOADED else tarea.new_format
-        ruta_archivo = os.path.join(ROOT_PATH, '/{}/{}'.format(usuario.username, file_name))
+        ruta_archivo = os.path.join("files", '/{}/{}'.format(usuario.username, file_name))
 
         return send_file(ruta_archivo, as_attachment=True, attachment_filename=file_name)

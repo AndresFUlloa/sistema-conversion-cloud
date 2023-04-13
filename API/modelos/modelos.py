@@ -3,8 +3,10 @@ import datetime
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import fields, Schema
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-from app import db
+
 import enum
+
+db=SQLAlchemy()
 
 class EstadoTarea(enum.Enum):
     UPLOADED = 1
@@ -32,7 +34,7 @@ class Tarea(db.Model):
     disponible = db.Column(db.Boolean, default=False)
     estado = db.Column(db.Enum(EstadoTarea), default=EstadoTarea.UPLOADED)
     fecha_subido = db.Column(db.DateTime, default=datetime.datetime.utcnow())
-    usuario = db.Column(db.Integer, db.ForeignKey('usuario.id'))
+    usuario = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 
 class TareaSchema(SQLAlchemyAutoSchema):
