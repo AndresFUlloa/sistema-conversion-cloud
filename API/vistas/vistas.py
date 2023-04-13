@@ -1,6 +1,6 @@
 import hashlib
 import os.path
-
+import psycopg2
 import flask
 import sqlalchemy
 from flask import request, send_file
@@ -20,6 +20,7 @@ class VistaSignUp(Resource):
             return 'Las contraseñas no coinciden', 400
 
         usuario = User.query.filter(User.username == request.json["username"]).first()
+
         if usuario is not None:
             return 'El usuario {} ya existe'.format(request.json["username"]), 409
 

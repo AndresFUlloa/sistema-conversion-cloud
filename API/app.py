@@ -8,7 +8,7 @@ from vistas import VistaSignUp, VistaLogIn, VistaTareas, VistaTarea
 
 app = Flask(__name__)
 ROOT_PATH = app.root_path
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://misoNubes:miso20232@localhost/conversion_archivos'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Grupo10@localhost:5432/conversion_archivos'
 app.config['JWT_SECRET_KEY'] = 'frase-secreta'
 app.config['PROPAGATE_EXCEPTIONS'] = True
 
