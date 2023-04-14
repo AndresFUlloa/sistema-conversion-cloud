@@ -2,7 +2,6 @@ import datetime
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import fields
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-
 import enum
 
 db = SQLAlchemy()
@@ -31,8 +30,8 @@ class User(db.Model):
 class Tarea(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre_archivo = db.Column(db.String(512))
-    old_format = db.Column(db.String(3))
-    new_format = db.Column(db.String(3))
+    old_format = db.Column(db.String(5))
+    new_format = db.Column(db.String(5))
     disponible = db.Column(db.Boolean, default=False)
     estado = db.Column(db.Enum(EstadoTarea), default=EstadoTarea.UPLOADED)
     fecha_subido = db.Column(db.DateTime, default=datetime.datetime.utcnow())

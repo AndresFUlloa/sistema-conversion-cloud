@@ -10,7 +10,6 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from modelos import db, User, Tarea, TareaSchema, EstadoTarea
 
-
 tarea_schema = TareaSchema()
 
 class VistaSignUp(Resource):
@@ -22,7 +21,6 @@ class VistaSignUp(Resource):
             return 'Las contraseñas no coinciden', 400
 
         usuario = User.query.filter(User.username == request.json["username"]).first()
-
         if usuario is not None:
             return 'El usuario {} ya existe'.format(request.json["username"]), 409
 
@@ -45,7 +43,7 @@ class VistaSignUp(Resource):
 class VistaLogIn(Resource):
 
     def post(self):
-        contrasena_encriptada = hashlib.md5(request.json["contrasena"].encode('utf-8')).hexdigest()
+        contrasena_encriptada = hashlib.md5(request.json["password"].encode('utf-8')).hexdigest()
         usuario = User.query.filter(
             User.username == request.json['username'] and User.password == contrasena_encriptada).first()
 
@@ -73,9 +71,11 @@ class VistaTareas(Resource):
         id_usuario = get_jwt_identity()
         usuario = User.query.get_or_404(id_usuario)
 
+        new_format = request.form['newFormat']
+        print(new_format)
+
         file = request.files['file']
         filename = file.filename
-
         nueva_tarea = Tarea(
             nombre_archivo=filename.split('.')[0],
             old_format=filename.split('.')[1],
@@ -85,7 +85,7 @@ class VistaTareas(Resource):
 
         db.session.add(nueva_tarea)
 
-        target_folder = os.path.join("files",usuario.username)
+        target_folder = os.path.join('files', usuario.username)
         if not os.path.exists(target_folder):
             os.makedirs(target_folder)
 
@@ -111,6 +111,7 @@ class VistaTarea(Resource):
 
     @jwt_required()
     def delete(self, id_tarea):
+
         id_usuario = get_jwt_identity()
         usuario = User.query.get_or_404(id_usuario)
 
@@ -131,12 +132,13 @@ class VistaArchivos(Resource):
         id_usuario = get_jwt_identity()
         usuario = User.query.get_or_404(id_usuario)
 
-        tarea = Tarea.query.filter(Tarea.usuario==usuario.id and Tarea.nombre_archivo==file_name).first()
+        tarea = Tarea.query.filter(Tarea.usuario==usuario.id,Tarea.nombre_archivo==file_name).first()
 
         if tarea is None:
             return 'Archivo no encontrado', 404
 
-        file_name += tarea.old_format if tarea.estado == EstadoTarea.UPLOADED else tarea.new_format
-        ruta_archivo = os.path.join("files", '/{}/{}'.format(usuario.username, file_name))
+        file_name += '.' + tarea.old_format if tarea.estado == EstadoTarea.UPLOADED else tarea.new_format
+        print("****************", file_name, "********************")
+        ruta_archivo = 'files/{}/{}'.format(usuario.username, file_name)
 
         return send_file(ruta_archivo, as_attachment=True, attachment_filename=file_name)
