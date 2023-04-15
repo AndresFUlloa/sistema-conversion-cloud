@@ -1,0 +1,15 @@
+marshmallow>=3
+marshmallow-sqlalchemy
+flask
+flask-restful
+Flask-Migrate==3.1.0
+Flask-SQLAlchemy==2.5.1
+flask-marshmallow
+flask-jwt-extended
+python-dotenv
+celery>=5.0.0
+gunicorn
+passlib
+SQLAlchemy==1.4
+psycopg2-binary==2.9.3
+flower

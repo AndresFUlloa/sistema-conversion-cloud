@@ -4,21 +4,62 @@ volumes:
   local_postgres_data: {}
 
 services:
+  rabbitmq:
+    hostname: rabbit
+    image: rabbitmq:management
+    ports:
+      - "5673:5672"
+      - "15672:15672"
+
   postgres:
     image: postgres:11.12
     container_name: postgres
+    ports:
+      - "5433:5432"
     volumes:
       - local_postgres_data:/var/lib/postgresql/data:Z
     env_file:
       - ./.envs/.local/.postgres
 
   app:
-    build: API
-    command: flask run --host 0.0.0.0
+    build: .
+    command: gunicorn -b 0.0.0.0:5000 compressor.wsgi:app
     depends_on:
+      - postgres
+      - rabbitmq
+    volumes:
+      - ./compressor:/code/compressor
+      - ./migrations:/code/migrations
+    env_file:
+      - ./.envs/.local/.postgres
+      - ./.envs/.local/.flask
+
+  worker:
+    build: .
+    command: celery -A compressor.celery_app:app worker
+    depends_on:
+      - rabbitmq
       - postgres
     env_file:
       - ./.envs/.local/.postgres
+      - ./.envs/.local/.flask
+    volumes:
+      - .:/code
+
+  flower:
+    build: .
+    command: celery -A compressor.celery_app:app flower
+    ports:
+      - "5555:5555"
+    env_file:
+    - ./.envs/.local/.postgres
+    - ./.envs/.local/.flask
+    depends_on:
+      - rabbitmq
+      - postgres
+      - worker
+    volumes:
+      - .:/code
 
   nginx:
     image: nginx:latest
