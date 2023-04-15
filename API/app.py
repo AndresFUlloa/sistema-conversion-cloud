@@ -3,9 +3,8 @@ from flask_cors import CORS
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from vistas import VistaSignUp, VistaLogIn, VistaTareas, VistaTarea, VistaArchivos
-
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, JWTManager
 from sqlalchemy import create_engine
-
 
 from modelos import db
 
