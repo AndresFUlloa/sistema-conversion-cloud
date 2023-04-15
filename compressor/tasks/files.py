@@ -1,8 +1,8 @@
 from typing import Text
 
 from celery import shared_task
-
-from compressor.models import Task
+from compressor.extensions import db
+from compressor.models import Task, TaskStatus
 from compressor.utils.files import compress_files
 
 
@@ -14,3 +14,6 @@ def run_compress_job(path: Text, file_name: Text, compression_type:  Text, task_
         file_name,
         compression_type
     )
+    task.status = TaskStatus.PROCESSED
+    task.available = True
+    db.session.commit()

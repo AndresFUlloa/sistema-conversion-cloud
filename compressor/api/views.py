@@ -7,7 +7,7 @@ from flask import request, send_file
 from compressor.api.schemas.tasks import TaskSchema
 from compressor.api.schemas.users import UserSchema, LoginSchema
 from compressor.extensions import db
-from compressor.models import User, Task
+from compressor.models import User, Task, TaskStatus
 from marshmallow import ValidationError
 
 from compressor.tasks.files import run_compress_job
@@ -173,14 +173,9 @@ class FilesView(Resource):
         if task is None:
             return {"message": "File not found"}, 404
 
-        # file_name += '.' + tarea.old_format if tarea.estado == EstadoTarea.UPLOADED else tarea.new_format
-        # ruta_archivo = 'files/{}'.format(usuario.username)
-        # comprimir_zip(ruta_archivo, file_name)
-        # comprimir_archivo_tar_gz(ruta_archivo, file_name)
-        # comprimir_archivo_7z(ruta_archivo, file_name)
-        # ruta_archivo += '/' + file_name
-        # return send_file(ruta_archivo, as_attachment=True, attachment_filename=file_name)
-        return {"status": "ok"}
+        file_name += '.' + task.old_format if task.status == TaskStatus.UPLOADED else task.new_format
+        file_root = 'compressor/files/{}/{}'.format(user.username, file_name)
+        return send_file(file_root, as_attachment=True, attachment_filename=file_name)
 
 
 def initialize_routes(api):
