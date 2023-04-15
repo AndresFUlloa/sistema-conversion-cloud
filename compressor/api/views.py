@@ -173,14 +173,9 @@ class FilesView(Resource):
         if task is None:
             return {"message": "File not found"}, 404
 
-        # file_name += '.' + tarea.old_format if tarea.estado == EstadoTarea.UPLOADED else tarea.new_format
-        # ruta_archivo = 'files/{}'.format(usuario.username)
-        # comprimir_zip(ruta_archivo, file_name)
-        # comprimir_archivo_tar_gz(ruta_archivo, file_name)
-        # comprimir_archivo_7z(ruta_archivo, file_name)
-        # ruta_archivo += '/' + file_name
-        # return send_file(ruta_archivo, as_attachment=True, attachment_filename=file_name)
-        return {"status": "ok"}
+        file_name += '.' + tarea.old_format if tarea.estado == EstadoTarea.UPLOADED else tarea.new_format
+        ruta_archivo = 'compressor/files/{}/{}'.format(usuario.username, file_name)
+        return send_file(ruta_archivo, as_attachment=True, attachment_filename=file_name)
 
 
 def initialize_routes(api):
