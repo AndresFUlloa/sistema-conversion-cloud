@@ -12,8 +12,8 @@ class TaskStatus(enum.Enum):
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     file_name = db.Column(db.String(512))
-    old_format = db.Column(db.String(5))
-    new_format = db.Column(db.String(5))
+    old_format = db.Column(db.String(8))
+    new_format = db.Column(db.String(8))
     available = db.Column(db.Boolean, default=False)
     status = db.Column(db.Enum(TaskStatus), default=TaskStatus.UPLOADED)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow())
