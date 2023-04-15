@@ -51,6 +51,7 @@ def configure_extensions(app: Flask) -> None:
     migrate.init_app(app, db)
 
 
+
 def celery_init_app(app: Optional[Flask]) -> Celery:
     app = app or create_app()
 

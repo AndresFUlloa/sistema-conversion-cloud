@@ -5,7 +5,9 @@ flask-restful
 Flask-Migrate==3.1.0
 Flask-SQLAlchemy==2.5.1
 flask-marshmallow
-flask-jwt-extended
+Flask-JWT==0.2.0
+Flask-JWT-Extended==4.2.3
+itsdangerous==2.0.1
 python-dotenv
 celery>=5.0.0
 gunicorn
@@ -13,3 +15,4 @@ passlib
 SQLAlchemy==1.4
 psycopg2-binary==2.9.3
 flower
+py7zr
