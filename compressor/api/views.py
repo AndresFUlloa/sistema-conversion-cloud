@@ -186,8 +186,8 @@ class FilesView(Resource):
 def initialize_routes(api):
     api.add_resource(HealthView, '/health')
 
-    api.add_resource(SignUpView, '/sign-up')
-    api.add_resource(LoginView, '/login')
+    api.add_resource(SignUpView, '/auth/sign-up')
+    api.add_resource(LoginView, '/auth/login')
 
     api.add_resource(TasksView, '/tasks')
     api.add_resource(TaskView, '/tasks/<int:task_id>')
