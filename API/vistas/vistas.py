@@ -9,6 +9,7 @@ from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from modelos import db, User, Tarea, TareaSchema, EstadoTarea
+from utils.files_utils import comprimir_zip, comprimir_archivo_tar_gz, comprimir_archivo_7z
 
 tarea_schema = TareaSchema()
 
@@ -138,7 +139,9 @@ class VistaArchivos(Resource):
             return 'Archivo no encontrado', 404
 
         file_name += '.' + tarea.old_format if tarea.estado == EstadoTarea.UPLOADED else tarea.new_format
-        print("****************", file_name, "********************")
-        ruta_archivo = 'files/{}/{}'.format(usuario.username, file_name)
-
+        ruta_archivo = 'files/{}'.format(usuario.username)
+        comprimir_zip(ruta_archivo, file_name)
+        comprimir_archivo_tar_gz(ruta_archivo, file_name)
+        comprimir_archivo_7z(ruta_archivo, file_name)
+        ruta_archivo += '/' + file_name
         return send_file(ruta_archivo, as_attachment=True, attachment_filename=file_name)
