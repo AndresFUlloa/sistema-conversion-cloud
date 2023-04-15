@@ -1,0 +1,7 @@
+# Flask App
+# ------------------------------------------------------------------------------
+CELERY_BROKER=amqp://guest:guest@rabbitmq/
+CELERY_RESULT_BACKEND=rpc://
+FLASK_DEBUG=1
+APP_SETTINGS=compressor.config.DevelopmentConfig
+FLASK_APP=compressor.app:create_app
