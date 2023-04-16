@@ -147,13 +147,18 @@ class TaskView(Resource):
     @jwt_required()
     def delete(self, task_id):
         user_id = get_jwt_identity()
+        user = User.query.get_or_404(user_id)
         task = Task.query.get_or_404(task_id)
 
         if task.user_id != user_id:
             return {"message": "Access denied"}, 403
 
-        db.session.delete(task)
-        db.session.commit()
+        if task.available :
+           db.session.delete(task)
+           db.session.commit()
+           for extension in [task.old_format,task.new_format]:
+               file_root = 'compressor/files/{}/{}.{}'.format(user.username, task.file_name,extension)
+               os.remove(file_root);   
 
         return {"message": "Task deleted successfully"}, 200
 
