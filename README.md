@@ -30,4 +30,22 @@ Este comando se utiliza para aplicar una migración a la base de datos en una ap
 docker-compose -f local.yml run --rm app flask db upgrade
 ```
 
+## Commands for docker metrics with prometheus and grafana
 
+```shell
+docker-compose -f local.test.yml build
+```
+
+```shell
+docker-compose -f local.test.yml up
+```
+
+or this for arm64
+
+```shell
+docker-compose -f local.test.yml build
+```
+
+```shell
+docker-compose -f local.arm.test.yml up
+```
