@@ -5,27 +5,32 @@ Sistema que convierte un archivo de un tipo a otro
 ## Commands
 
 Abra una terminal en la raíz del proyecto y ejecute lo siguiente para el desarrollo local:
+
 ```shell
 docker-compose -f local.yml build
 ```
 
 Y luego ejecuta:
+
 ```shells
 docker-compose -f local.yml up
 ```
 
 Este comando se utiliza para inicializar una base de datos en una aplicación Flask que se ejecuta dentro de un contenedor Docker.
+
 ```shell
 docker-compose -f local.yml run --rm app flask db init
 ```
 
 Este comando se utiliza para generar un archivo de migración en una aplicación Flask que utiliza la extensión Flask-Migrate.
+
 ```shell
 docker-compose -f local.yml run --rm app flask db migrate
 ```
 
 
 Este comando se utiliza para aplicar una migración a la base de datos en una aplicación Flask que utiliza la extensión Flask-Migrate
+
 ```shell
 docker-compose -f local.yml run --rm app flask db upgrade
 ```
@@ -52,12 +57,28 @@ docker-compose -f local.arm.test.yml up
 
 ### Locust
 
+Run login test
+
 ```shell
-docker-compose -f local.yml run -p 8089:8089 --rm locust -f /mnt/locust/locustfile.py --host=http://nginx:80
+docker-compose -f local.yml run -e SHAPE=LOGIN -p 8089:8089 --rm locust -f /mnt/locust/locustfile.py --host=http://nginx:80
+```
+
+Run create task test
+
+```shell
+docker-compose -f local.yml run -e SHAPE=CREATE_TASK -p 8089:8089 --rm locust -f /mnt/locust/locustfile.py --host=http://nginx:80
 ```
 
 or with headless
 
+Run login test
+
 ```shell
-docker-compose -f local.yml run --rm locust -f /mnt/locust/locustfile.py --host=http://nginx:80 --headless -u 100 -r 5
+docker-compose -f local.yml run -e SHAPE=LOGIN --rm locust -f /mnt/locust/locustfile.py --host=http://nginx:80 --headless -u 100 -r 5
+```
+
+Run create task test
+
+```shell
+docker-compose -f local.yml run -e SHAPE=CREATE_TASK --rm locust -f /mnt/locust/locustfile.py --host=http://nginx:80 --headless -u 100 -r 5
 ```
