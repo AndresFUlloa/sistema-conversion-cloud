@@ -112,10 +112,10 @@ class TasksView(Resource):
 
         db.session.add(new_task)
         pos = Task.query.filter(Task.file_name.contains(filename.split('.')[0]), Task.user_id==user_id).count()
-
+        
         LOGGER.info("user %s run jon in %s", user_id, pos)
 
-        if pos > 0:
+        if pos > 1:
             filename = new_task.file_name + '_' + str(pos) + '.' + new_task.old_format
             new_task.file_name = filename.split('.')[0]
         target_folder = os.path.join('compressor/files', user.username)
@@ -177,16 +177,17 @@ class FilesView(Resource):
         user = User.query.get_or_404(user_id)
 
         task = Task.query.filter(
-            Task.usuario==user.id,
+            Task.user_id==user.id,
             Task.file_name==file_name
         ).first()
 
         if task is None:
             return {"message": "File not found"}, 404
 
-        file_name += '.' + task.old_format if task.status == TaskStatus.UPLOADED else task.new_format
-        file_root = 'compressor/files/{}/{}'.format(user.username, file_name)
-        return send_file(file_root, as_attachment=True, attachment_filename=file_name)
+        file_name += '.' + (task.old_format if task.status == TaskStatus.UPLOADED else task.new_format)
+        file_root = 'files/{}/{}'.format(user.username, file_name)
+        return send_file(file_root, as_attachment=True)
+        #attachment_filename=file_name)
 
 
 def initialize_routes(api):
