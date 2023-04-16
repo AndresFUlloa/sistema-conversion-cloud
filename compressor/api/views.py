@@ -153,7 +153,7 @@ class TaskView(Resource):
         if task.user_id != user_id:
             return {"message": "Access denied"}, 403
 
-        if task.available :
+        if task.available:
            db.session.delete(task)
            db.session.commit()
            for extension in [task.old_format,task.new_format]:
