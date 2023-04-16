@@ -5,6 +5,17 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 LOGGER = logging.getLogger()
 
+class LoginUser(HttpUser):
+    wait_time = between(1, 2)
+
+    @task
+    def login(self):
+        response = self.client.post("/api/auth/login", json={"username": "test", "password": "123asd456"})
+        if response.status_code == 200:
+            LOGGER.info("Login successful")
+        else:
+            LOGGER.error("Login failed")
+
 
 class FileUploadUser(HttpUser):
     wait_time = between(1, 5)
