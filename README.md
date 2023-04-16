@@ -53,11 +53,11 @@ docker-compose -f local.arm.test.yml up
 ### Locust
 
 ```shell
-docker-compose -f local.yml run --rm locust -f /mnt/locust/locustfile.py --host=http://nginx:80
+docker-compose -f local.yml run -p 8089:8089 --rm locust -f /mnt/locust/locustfile.py --host=http://nginx:80
 ```
 
 or with headless
 
 ```shell
-docker-compose -f local.yml run -p 8089:8089 --rm locust -f /mnt/locust/locustfile.py --host=http://nginx:80 --headless -u 100 -r 5
+docker-compose -f local.yml run --rm locust -f /mnt/locust/locustfile.py --host=http://nginx:80 --headless -u 100 -r 5
 ```
