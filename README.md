@@ -10,7 +10,7 @@ docker-compose -f local.yml build
 ```
 
 Y luego ejecuta:
-```shell
+```shells
 docker-compose -f local.yml up
 ```
 
@@ -45,7 +45,13 @@ or this for arm64
 ```shell
 docker-compose -f local.test.yml build
 ```
-
 ```shell
 docker-compose -f local.arm.test.yml up
+```
+
+
+### Locust
+
+```shell
+docker-compose -f local.yml run --rm locust -f /mnt/locust/locustfile.py --host=http://nginx:80 --headless -u 100 -r 5
 ```

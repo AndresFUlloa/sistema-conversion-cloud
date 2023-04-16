@@ -112,7 +112,9 @@ class TasksView(Resource):
 
         db.session.add(new_task)
         pos = Task.query.filter(Task.file_name.contains(filename.split('.')[0]), Task.user_id==user_id).count()
-        print("++++++++++++++++++", pos, "*********************")
+
+        LOGGER.info("user %s run jon in %s", user_id, pos)
+
         if pos > 0:
             filename = new_task.file_name + '_' + str(pos) + '.' + new_task.old_format
             new_task.file_name = filename.split('.')[0]

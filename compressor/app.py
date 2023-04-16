@@ -2,9 +2,10 @@ import os
 import logging
 from typing import Optional
 from flask import Flask
+from flask_cors import CORS
 from celery import Celery, Task
 from flask_restful import Api
-
+from logging.config import dictConfig
 from compressor.api.views import initialize_routes
 from compressor.extensions import db, jwt, migrate
 
@@ -12,11 +13,26 @@ LOGGER = logging.getLogger()
 
 
 def create_app(script_info=None)  -> Flask:
-
+    dictConfig({
+        'version': 1,
+        'formatters': {'default': {
+            'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+        }},
+        'handlers': {'wsgi': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://flask.logging.wsgi_errors_stream',
+            'formatter': 'default'
+        }},
+        'root': {
+            'level': 'DEBUG',
+            'handlers': ['wsgi']
+        }
+    })
     # instantiate the app
     app = Flask(
         __name__,
     )
+    cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
     api = Api(app, prefix="/api")
 
     # set config
