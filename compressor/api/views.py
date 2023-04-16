@@ -111,7 +111,11 @@ class TasksView(Resource):
         )
 
         db.session.add(new_task)
-
+        pos = Task.query.filter(Task.file_name.contains(filename.split('.')[0]), Task.user_id==user_id).count()
+        print("++++++++++++++++++", pos, "*********************")
+        if pos > 0:
+            filename = new_task.file_name + '_' + str(pos) + '.' + new_task.old_format
+            new_task.file_name = filename.split('.')[0]
         target_folder = os.path.join('compressor/files', user.username)
 
         if not os.path.exists(target_folder):

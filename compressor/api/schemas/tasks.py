@@ -13,7 +13,7 @@ class EnumToDict(fields.Field):
 
 class TaskSchema(ma.SQLAlchemyAutoSchema):
     status = EnumToDict(attribute='status')
-    new_format = EnumToDict(attribute='new_format')
+
 
     class Meta:
         model = Task
