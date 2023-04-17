@@ -7,8 +7,9 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 LOGGER = logging.getLogger()
 
 if os.environ["SHAPE"] == "LOGIN":
+
     class LoginUser(HttpUser):
-        wait_time = constant(1)
+        wait_time = constant(0.9)
 
         @task
         def login(self):
@@ -24,9 +25,10 @@ elif os.environ["SHAPE"] == "CREATE_TASK":
         token = None
 
         def on_start(self):
-            token = self.login()
-            self.token = token
-            self.client.headers = {'Authorization': f'Bearer {token}'}
+            if self.token is None:
+                token = self.login()
+                self.token = token
+                self.client.headers = {'Authorization': f'Bearer {token}'}
 
         def login(self):
             with self.client.post("/api/auth/login", json={
@@ -40,17 +42,18 @@ elif os.environ["SHAPE"] == "CREATE_TASK":
                     token = response.json().get("token")
                     return token
 
+
         @task
         def upload_file(self):
             location = Path(__file__).absolute().parent
-            file_path = f"{location}/asana.pptx"
+            file_path = f"{location}/Asana y GTD.pptx"
 
             LOGGER.info("Uploading file %s", file_path)
 
             data  = MultipartEncoder(
                 fields={
                     'newFormat': 'zip',
-                    'file': ("asana.pptx", open(file_path, 'rb'), 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
+                    'file': ("Asana y GTD.pptx", open(file_path, 'rb'), 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
                 }
             )
 
