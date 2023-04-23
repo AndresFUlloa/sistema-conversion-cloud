@@ -115,7 +115,7 @@ resource "google_compute_firewall" "worker_firewall" {
 
   allow {
     protocol = "tcp"
-    ports    = ["22", "5555", "5673",  "15672"]
+    ports    = ["22", "5555", "5672",  "15672"]
   }
 
   source_ranges = ["0.0.0.0/0"]
@@ -200,7 +200,7 @@ resource "google_compute_firewall" "nfs_server" {
   }
 
   source_ranges = ["0.0.0.0/0"]
-  target_tags = google_compute_instance.worker.tags
+  target_tags = google_compute_instance.nfs_server.tags
 }
 
 resource "google_service_account" "default" {

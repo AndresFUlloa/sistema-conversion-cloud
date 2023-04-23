@@ -5,7 +5,7 @@ services:
     hostname: rabbit
     image: rabbitmq:management
     ports:
-      - "5673:5672"
+      - "5672:5672"
       - "15672:15672"
 
   worker:
@@ -21,18 +21,3 @@ services:
       - ./.envs/.local/.flask
     volumes:
       - /mnt/nfs:/code/compressor/files
-
-#  flower:
-#    build: .
-#    command: celery -A compressor.celery_app:app flower
-#    environment:
-#      FLASK_APP: compressor.app:create_app
-#      APP_SETTINGS: compressor.config.DevelopmentConfig
-#      FLASK_DEBUG: 1
-#    env_file:
-#      - ./.envs/.local/.flask
-#    ports:
-#      - "5555:5555"
-#    depends_on:
-#      - rabbitmq
-#      - worker
