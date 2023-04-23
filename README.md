@@ -82,3 +82,40 @@ Run create task test
 ```shell
 docker-compose -f local.yml run -e SHAPE=CREATE_TASK --rm locust -f /mnt/locust/locustfile.py --host=http://nginx:80 --headless -u 100 -r 5
 ```
+
+## Infrastructure V1
+
+Se uso terraform para el aprovisionamiento de la infraestructura en GCP en cual se encuentra en la siguiente ruta `.infra`
+
+Comandos para aprovisionar la infraestructura
+
+Primero instalar gcloud y configurar la cuenta de google cloud
+
+[Instala la CLI de gcloud](https://cloud.google.com/sdk/docs/install?hl=es-419)
+
+Despues,
+
+[Instalar terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
+
+```shell
+gcloud auth application-default login
+```
+
+```shell
+cd .infra
+```
+
+```shell
+terraform init
+```
+
+```shell
+
+terraform plan
+```
+
+```shell
+terraform apply
+```
+
+![Diagram](./files/diagram.png)

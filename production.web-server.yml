@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    command: gunicorn -b 0.0.0.0:5000 compressor.wsgi:app
+    environment:
+      FLASK_APP: compressor.app:create_app
+      APP_SETTINGS: compressor.config.DevelopmentConfig
+      FLASK_DEBUG: 1
+    volumes:
+      - /mnt/nfs:/code/compressor/files
+    env_file:
+      - ./.envs/.local/.flask
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx-proxy.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
