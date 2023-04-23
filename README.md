@@ -97,9 +97,18 @@ Despues,
 
 [Instalar terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
 
+
+Autenticacion con google cloud
+
 ```shell
 gcloud auth application-default login
 ```
+
+Ante subir un zip del repositorio a GCP, se debe de crear un bucket en GCP y subir el zip ahi y utilizar dicho bucket en la variable `gcs_bucket_name`
+
+```shell
+
+Ejecutar terraform
 
 ```shell
 cd .infra
