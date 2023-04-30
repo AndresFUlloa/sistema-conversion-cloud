@@ -1,5 +1,5 @@
 import logging
-import os.path
+import os
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from flask_restful import Api, Resource
 from flask import request, send_file
@@ -11,6 +11,7 @@ from compressor.models import User, Task, TaskStatus
 from marshmallow import ValidationError
 
 from compressor.tasks.files import run_compress_job
+from google.cloud import storage
 
 LOGGER = logging.getLogger()
 
@@ -101,8 +102,12 @@ class TasksView(Resource):
 
         LOGGER.info("convert file to %s", new_format)
 
-        file = request.files['file']
-        filename = file.filename
+        uploaded_file = request.files.get("file")
+
+        if not uploaded_file:
+            return "No file uploaded.", 400
+
+        filename = uploaded_file.filename
         new_task = Task(
             file_name=filename.split('.')[0],
             old_format=filename.split('.')[1],
@@ -118,22 +123,25 @@ class TasksView(Resource):
         if pos > 1:
             filename = new_task.file_name + '_' + str(pos) + '.' + new_task.old_format
             new_task.file_name = filename.split('.')[0]
-        target_folder = os.path.join('compressor/files', user.username)
 
-        if not os.path.exists(target_folder):
-            os.makedirs(target_folder)
+        target_path = f"{user.username}/{filename}"
 
-        file.save(os.path.join(target_folder, filename))
+        gcs = storage.Client()
+        bucket = gcs.get_bucket(os.getenv("CLOUD_STORAGE_BUCKET"))
+        blob = bucket.blob(target_path)
+
+        blob.upload_from_string(
+            uploaded_file.read(), content_type=uploaded_file.content_type
+        )
 
         db.session.commit()
 
-        path = 'compressor/files/{}'.format(user.username)
-
         run_compress_job.delay(
-            path,
-            filename,
+            target_path,
+            uploaded_file.filename,
             new_task.new_format,
-            new_task.id
+            new_task.id,
+            target_folder=user.username
         )
 
         return { "message": "File uploaded successfully"}, 200
@@ -164,13 +172,12 @@ class TaskView(Resource):
            db.session.commit()
            for extension in [task.old_format,task.new_format]:
                file_root = 'compressor/files/{}/{}.{}'.format(user.username, task.file_name,extension)
-               os.remove(file_root);   
+               os.remove(file_root)
 
         return {"message": "Task deleted successfully"}, 200
 
 
 class FilesView(Resource):
-
     @jwt_required()
     def get(self, file_name):
         user_id = get_jwt_identity()

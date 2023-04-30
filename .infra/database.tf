@@ -5,9 +5,10 @@ resource "random_password" "postgresql_password" {
 }
 
 resource "google_sql_database_instance" "postgresql_instance" {
-  name             = "postgresql-instance"
-  database_version = "POSTGRES_11"
-  region           = var.region
+  name                = "postgresql-instance"
+  database_version    = "POSTGRES_11"
+  region              = var.region
+  deletion_protection = false
 
   settings {
     tier = "db-f1-micro"

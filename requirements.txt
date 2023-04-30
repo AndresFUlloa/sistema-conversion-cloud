@@ -17,3 +17,4 @@ psycopg2-binary==2.9.3
 flower
 py7zr
 flask-cors
+google-cloud-storage==2.8.0

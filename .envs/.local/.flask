@@ -5,3 +5,4 @@ CELERY_RESULT_BACKEND=rpc://
 FLASK_DEBUG=1
 APP_SETTINGS=compressor.config.DevelopmentConfig
 FLASK_APP=compressor.app:create_app
+CLOUD_STORAGE_BUCKET=compressor-files-store

@@ -127,4 +127,10 @@ terraform plan
 terraform apply
 ```
 
+Y para hacer la migraciones en produccion, recordar cambiar `us-east1-docker.pkg.dev/andes-384517/compressor-api/api:latest` por el nombre de la imagen que se subio a GCP
+
+```shell
+sudo docker run --env-file ./.envs/.local/.flask -e FLASK_APP="compressor.app:create_app" -e APP_SETTINGS="compressor.config.DevelopmentConfig" us-east1-docker.pkg.dev/andes-384517/compressor-api/api:latest flask db upgrade
+```
+
 ![Diagram](./files/diagram.png)

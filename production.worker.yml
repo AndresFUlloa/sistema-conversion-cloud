@@ -9,7 +9,7 @@ services:
       - "15672:15672"
 
   worker:
-    build: .
+    image: us-east1-docker.pkg.dev/andes-384517/compressor-api/api:latest
     command: celery -A compressor.celery_app:app worker
     environment:
       FLASK_APP: compressor.app:create_app
@@ -19,5 +19,18 @@ services:
       - rabbitmq
     env_file:
       - ./.envs/.local/.flask
-    volumes:
-      - /mnt/nfs:/code/compressor/files
+
+#  flower:
+#    build: .
+#    command: celery -A compressor.celery_app:app flower
+#    environment:
+#      FLASK_APP: compressor.app:create_app
+#      APP_SETTINGS: compressor.config.DevelopmentConfig
+#      FLASK_DEBUG: 1
+#    ports:
+#      - "5555:5555"
+#    env_file:
+#      - ./.envs/.local/.flask
+#    depends_on:
+#      - rabbitmq
+#      - worker

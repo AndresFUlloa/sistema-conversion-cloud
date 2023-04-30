@@ -30,6 +30,11 @@ variable "gcs_zip_folder" {
 }
 
 variable "instance_zone" {
-  type = string
+  type    = string
   default = "us-east1-b"
+}
+
+variable "project" {
+  type    = string
+  default = "andes-384517"
 }

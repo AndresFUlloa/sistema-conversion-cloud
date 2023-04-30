@@ -9,6 +9,6 @@ terraform {
 
 
 provider "google" {
-  project = "andes-384517"
-  region  = "us-east1"
+  project = var.project
+  region  = var.region
 }
