@@ -46,7 +46,7 @@ elif os.environ["SHAPE"] == "CREATE_TASK":
         @task
         def upload_file(self):
             location = Path(__file__).absolute().parent
-            file_path = f"{location}/Asana y GTD.pptx"
+            file_path = f"{location}/asana.pptx"
 
             LOGGER.info("Uploading file %s", file_path)
 

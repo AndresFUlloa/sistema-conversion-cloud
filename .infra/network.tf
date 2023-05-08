@@ -5,21 +5,25 @@ resource "google_compute_backend_service" "web_server_backend" {
     group = google_compute_instance_group_manager.web_server.instance_group
   }
 
-  health_checks         = [google_compute_http_health_check.web_server_health_check.id]
+  health_checks         = [google_compute_health_check.web_health_check.id]
   port_name             = "http"
   protocol              = "HTTP"
   load_balancing_scheme = "EXTERNAL"
   timeout_sec           = 60
 }
 
-resource "google_compute_http_health_check" "web_server_health_check" {
-  name                = "web-server-health-check"
-  check_interval_sec  = 5
-  timeout_sec         = 5
-  healthy_threshold   = 2
-  unhealthy_threshold = 3
-  request_path        = "/api/health"
-  port                = 80
+resource "google_compute_health_check" "web_health_check" {
+  name = "web-health-check"
+
+  timeout_sec         = 60
+  check_interval_sec  = 60
+  healthy_threshold   = 4
+  unhealthy_threshold = 5
+
+  http_health_check {
+    port = "80"
+    request_path = "/api/health"
+  }
 }
 
 resource "google_compute_url_map" "web_server_url_map" {

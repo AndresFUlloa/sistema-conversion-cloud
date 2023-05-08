@@ -18,3 +18,4 @@ flower
 py7zr
 flask-cors
 google-cloud-storage==2.8.0
+sentry-sdk[flask]

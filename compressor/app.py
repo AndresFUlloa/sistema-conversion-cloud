@@ -1,5 +1,7 @@
 import os
 import logging
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
 from typing import Optional
 from flask import Flask
 from flask_cors import CORS
@@ -28,6 +30,15 @@ def create_app(script_info=None)  -> Flask:
             'handlers': ['wsgi']
         }
     })
+
+    sentry_sdk.init(
+        dsn="https://94deec57d6044edc91631216c1fb701b@o103299.ingest.sentry.io/4505143285121024",
+        integrations=[
+            FlaskIntegration(),
+        ],
+        traces_sample_rate=1.0,
+    )
+
     # instantiate the app
     app = Flask(
         __name__,
