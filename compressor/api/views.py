@@ -1,16 +1,15 @@
 import logging
 import os
+import json
+from google.cloud import pubsub_v1
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from flask_restful import Api, Resource
 from flask import request, send_file
-
 from compressor.api.schemas.tasks import TaskSchema
 from compressor.api.schemas.users import UserSchema, LoginSchema
 from compressor.extensions import db
 from compressor.models import User, Task, TaskStatus
 from marshmallow import ValidationError
-
-from compressor.tasks.files import run_compress_job
 from google.cloud import storage
 
 LOGGER = logging.getLogger()
@@ -30,6 +29,8 @@ class LoginView(Resource):
     @staticmethod
     def post():
         json_data = request.get_json()
+
+        LOGGER.info("User login")
 
         if not json_data:
             return {"message": "No input data provided"}, 400
@@ -136,13 +137,18 @@ class TasksView(Resource):
 
         db.session.commit()
 
-        run_compress_job.delay(
-            target_path,
-            uploaded_file.filename,
-            new_task.new_format,
-            new_task.id,
-            target_folder=user.username
+        publisher = pubsub_v1.PublisherClient()
+
+        data_dict = {'path': target_path, 'file_name': uploaded_file.filename, 'compression_type': new_task.new_format, 'task_id': new_task.id, 'target_folder': user.username}
+
+        message_data = json.dumps(data_dict).encode('utf-8')
+
+        topic_name = 'projects/{project_id}/topics/{topic}'.format(
+            project_id=os.getenv('GOOGLE_CLOUD_PROJECT'),
+            topic='compress',
         )
+        future = publisher.publish(topic_name, data=message_data)
+        future.result()
 
         return { "message": "File uploaded successfully"}, 200
 

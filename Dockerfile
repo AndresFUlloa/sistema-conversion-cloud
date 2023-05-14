@@ -19,5 +19,6 @@ RUN pip install -r requirements.txt
 
 # copy project
 COPY compressor compressor/
+COPY manage.py ./manage.py
 COPY migrations migrations/
 EXPOSE 5000

@@ -13,10 +13,26 @@ resource "google_storage_bucket_iam_binding" "allow_files_admin" {
 }
 
 resource "google_artifact_registry_repository_iam_binding" "allow_artifact_read" {
-  project = google_artifact_registry_repository.flask-api.project
-  location = google_artifact_registry_repository.flask-api.location
+  project    = google_artifact_registry_repository.flask-api.project
+  location   = google_artifact_registry_repository.flask-api.location
   repository = google_artifact_registry_repository.flask-api.name
   role       = "roles/artifactregistry.reader"
+  members = [
+    "serviceAccount:${google_service_account.allow_zipped_app.email}"
+  ]
+}
+
+resource "google_pubsub_subscription_iam_binding" "allow_zipped_app" {
+  role         = "roles/pubsub.subscriber"
+  subscription = google_pubsub_subscription.compress.name
+  members = [
+    "serviceAccount:${google_service_account.allow_zipped_app.email}"
+  ]
+}
+
+resource "google_pubsub_topic_iam_binding" "allow_zipped_app" {
+  role  = "roles/pubsub.publisher"
+  topic = google_pubsub_topic.compress.name
   members = [
     "serviceAccount:${google_service_account.allow_zipped_app.email}"
   ]
@@ -77,9 +93,7 @@ resource "google_compute_instance_template" "web_server" {
       curl \
       gnupg2 \
       gnupg-agent \
-      software-properties-common \
-      unzip \
-      nfs-common
+      software-properties-common
 
     # Set environment variables
     mkdir -p .envs/.local
@@ -89,7 +103,7 @@ resource "google_compute_instance_template" "web_server" {
     echo "POSTGRES_DB=${google_sql_database.app_db.name}" >> .envs/.local/.flask
     echo "POSTGRES_USER=${google_sql_user.app_user.name}" >> .envs/.local/.flask
     echo "POSTGRES_PASSWORD=${google_sql_user.app_user.password}" >> .envs/.local/.flask
-    echo "CELERY_BROKER=amqp://guest:guest@${google_compute_instance.worker.network_interface[0].access_config[0].nat_ip}/" >> .envs/.local/.flask
+    echo "GOOGLE_CLOUD_PROJECT=${local.project_id}" >> .envs/.local/.flask
 
     curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
     sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
@@ -100,6 +114,7 @@ resource "google_compute_instance_template" "web_server" {
       containerd.io
 
     sudo gcloud auth print-access-token | sudo docker login -u oauth2accesstoken --password-stdin us-east1-docker.pkg.dev
+    sudo docker run --env-file ./.envs/.local/.flask -e FLASK_APP="compressor.app:create_app" -e APP_SETTINGS="compressor.config.DevelopmentConfig" ${local.web_api_image_uri} flask db upgrade
     sudo docker run -d -p 80:5000 --env-file ./.envs/.local/.flask -e FLASK_APP="compressor.app:create_app" -e APP_SETTINGS="compressor.config.DevelopmentConfig" -e FLASK_DEBUG=1 ${local.web_api_image_uri} gunicorn -b 0.0.0.0:5000 compressor.wsgi:app
   EOF
 
@@ -133,7 +148,13 @@ resource "google_compute_instance_group_manager" "web_server" {
   }
 
   base_instance_name = "autoscaler-web-server"
-  target_size        = 1
+  target_size        = 3
+
+  lifecycle {
+    ignore_changes = [
+      target_size,
+    ]
+  }
 }
 
 resource "google_compute_autoscaler" "web_server" {
@@ -144,7 +165,7 @@ resource "google_compute_autoscaler" "web_server" {
   autoscaling_policy {
     max_replicas    = 3
     min_replicas    = 1
-    cooldown_period = 60
+    cooldown_period = 180
 
     cpu_utilization {
       target = 0.5
@@ -162,24 +183,18 @@ resource "google_compute_firewall" "worker_firewall" {
   }
 
   source_ranges = ["0.0.0.0/0"]
-  target_tags   = google_compute_instance.worker.tags
+  target_tags   = google_compute_instance_template.worker.tags
 }
 
-resource "google_compute_instance" "worker" {
-  name         = "worker"
-  machine_type = local.instance_type
-  boot_disk {
-    initialize_params {
-      size  = local.instance_size
-      image = local.instance_image
-    }
-  }
+resource "google_compute_instance_template" "worker" {
+  name           = "worker-template"
+  machine_type   = local.instance_type
+  can_ip_forward = false
 
-  zone = var.instance_zone
+  tags = ["worker"]
 
-  service_account {
-    email  = google_service_account.allow_zipped_app.email
-    scopes = ["cloud-platform"]
+  disk {
+    source_image = data.google_compute_image.debian.id
   }
 
   metadata_startup_script = <<-EOF
@@ -192,9 +207,7 @@ resource "google_compute_instance" "worker" {
       curl \
       gnupg2 \
       gnupg-agent \
-      software-properties-common \
-      unzip \
-      nfs-common
+      software-properties-common
 
     # Set environment variables
     mkdir -p .envs/.local
@@ -204,7 +217,7 @@ resource "google_compute_instance" "worker" {
     echo "POSTGRES_DB=${google_sql_database.app_db.name}" >> .envs/.local/.flask
     echo "POSTGRES_USER=${google_sql_user.app_user.name}" >> .envs/.local/.flask
     echo "POSTGRES_PASSWORD=${google_sql_user.app_user.password}" >> .envs/.local/.flask
-    echo "CELERY_BROKER=amqp://guest:guest@rabbitmq/" >> .envs/.local/.flask
+    echo "GOOGLE_CLOUD_PROJECT=${local.project_id}" >> .envs/.local/.flask
 
     curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
     sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
@@ -214,13 +227,8 @@ resource "google_compute_instance" "worker" {
       docker-ce-cli \
       containerd.io
 
-    curl -L https://github.com/docker/compose/releases/download/1.29.1/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
-
-    gsutil cp gs://${var.gcs_bucket_name}/${var.gcs_zip_file_name} /
-    unzip file\:/${var.gcs_zip_file_name}
-
-    docker-compose -f production.worker.yml up -d
+    sudo gcloud auth print-access-token | sudo docker login -u oauth2accesstoken --password-stdin us-east1-docker.pkg.dev
+    sudo docker run -d --env-file ./.envs/.local/.flask -e FLASK_APP="compressor.app:create_app" -e APP_SETTINGS="compressor.config.DevelopmentConfig" -e FLASK_DEBUG=1 ${local.web_api_image_uri} python manage.py run_worker
   EOF
 
   network_interface {
@@ -228,11 +236,49 @@ resource "google_compute_instance" "worker" {
     access_config {}
   }
 
-  tags = ["worker"]
+  service_account {
+    email  = google_service_account.allow_zipped_app.email
+    scopes = ["cloud-platform"]
+  }
 
   depends_on = [
-    google_storage_bucket.files
+    google_artifact_registry_repository.flask-api
   ]
+}
+
+resource "google_compute_instance_group_manager" "worker" {
+  name = "worker-group-manager"
+  zone = var.instance_zone
+
+  version {
+    instance_template = google_compute_instance_template.worker.id
+    name              = "primary"
+  }
+
+  base_instance_name = "autoscaler-worker"
+  target_size        = 3
+
+  lifecycle {
+    ignore_changes = [
+      target_size,
+    ]
+  }
+}
+
+resource "google_compute_autoscaler" "worker" {
+  name   = "worker-autoscaler"
+  zone   = var.instance_zone
+  target = google_compute_instance_group_manager.worker.id
+
+  autoscaling_policy {
+    max_replicas    = 3
+    min_replicas    = 1
+    cooldown_period = 180
+
+    cpu_utilization {
+      target = 0.5
+    }
+  }
 }
 
 resource "google_compute_firewall" "locust_firewall" {

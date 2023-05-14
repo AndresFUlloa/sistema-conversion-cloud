@@ -15,13 +15,13 @@ resource "google_compute_backend_service" "web_server_backend" {
 resource "google_compute_health_check" "web_health_check" {
   name = "web-health-check"
 
-  timeout_sec         = 60
-  check_interval_sec  = 60
-  healthy_threshold   = 4
+  timeout_sec         = 1
+  check_interval_sec  = 1
+  healthy_threshold   = 1
   unhealthy_threshold = 5
 
   http_health_check {
-    port = "80"
+    port         = "80"
     request_path = "/api/health"
   }
 }

@@ -9,7 +9,6 @@ Flask-JWT==0.2.0
 Flask-JWT-Extended==4.2.3
 itsdangerous==2.0.1
 python-dotenv
-celery>=5.0.0
 gunicorn
 passlib
 SQLAlchemy==1.4
@@ -19,3 +18,4 @@ py7zr
 flask-cors
 google-cloud-storage==2.8.0
 sentry-sdk[flask]
+google-cloud-pubsub
