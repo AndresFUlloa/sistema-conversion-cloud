@@ -139,7 +139,7 @@ class TasksView(Resource):
 
         publisher = pubsub_v1.PublisherClient()
 
-        data_dict = {'path': target_path, 'file_name': uploaded_file.filename, 'compression_type': new_task.new_format, 'task_id': new_task.id, 'target_folder': user.username}
+        data_dict = {'path': target_path, 'file_name': filename, 'compression_type': new_task.new_format, 'task_id': new_task.id, 'target_folder': user.username}
 
         message_data = json.dumps(data_dict).encode('utf-8')
 

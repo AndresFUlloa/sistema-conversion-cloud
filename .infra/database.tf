@@ -11,7 +11,7 @@ resource "google_sql_database_instance" "postgresql_instance" {
   deletion_protection = false
 
   settings {
-    tier = "db-f1-micro"
+    tier = "db-g1-small"
     backup_configuration {
       enabled = false
     }

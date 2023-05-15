@@ -26,16 +26,12 @@ def run_compress_callback(message: pubsub_v1.subscriber.message.Message) -> None
         bucket = client.bucket(os.getenv("CLOUD_STORAGE_BUCKET"))
 
         blob = bucket.blob(data_dict['path'])
-        temp_path = f'/temp/files/{data_dict["target_folder"]}'
 
-        if not os.path.exists(temp_path):
-            os.makedirs(temp_path)
-
-        temp_file_path = f'{temp_path}/{data_dict["file_name"]}'
+        temp_file_path = f'/{data_dict["file_name"]}'
         blob.download_to_filename(temp_file_path)
 
         result, content_type, filename = compress_files(
-            temp_path,
+            "/",
             data_dict["file_name"],
             data_dict["compression_type"]
         )
@@ -47,8 +43,11 @@ def run_compress_callback(message: pubsub_v1.subscriber.message.Message) -> None
             result_file.read(), content_type=content_type
         )
 
-        os.remove(temp_file_path)
-        os.remove(result)
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+
+        if os.path.exists(result):
+            os.remove(result)
 
         task.status = TaskStatus.PROCESSED
         task.available = True

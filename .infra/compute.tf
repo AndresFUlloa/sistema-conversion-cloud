@@ -115,7 +115,7 @@ resource "google_compute_instance_template" "web_server" {
 
     sudo gcloud auth print-access-token | sudo docker login -u oauth2accesstoken --password-stdin us-east1-docker.pkg.dev
     sudo docker run --env-file ./.envs/.local/.flask -e FLASK_APP="compressor.app:create_app" -e APP_SETTINGS="compressor.config.DevelopmentConfig" ${local.web_api_image_uri} flask db upgrade
-    sudo docker run -d -p 80:5000 --env-file ./.envs/.local/.flask -e FLASK_APP="compressor.app:create_app" -e APP_SETTINGS="compressor.config.DevelopmentConfig" -e FLASK_DEBUG=1 ${local.web_api_image_uri} gunicorn -b 0.0.0.0:5000 compressor.wsgi:app
+    sudo docker run -d -p 80:5000 --env-file ./.envs/.local/.flask -e FLASK_APP="compressor.app:create_app" -e APP_SETTINGS="compressor.config.DevelopmentConfig" -e FLASK_DEBUG=1 ${local.web_api_image_uri} gunicorn -b 0.0.0.0:5000 --workers=5 --timeout=0  compressor.wsgi:app
   EOF
 
   network_interface {
@@ -148,7 +148,7 @@ resource "google_compute_instance_group_manager" "web_server" {
   }
 
   base_instance_name = "autoscaler-web-server"
-  target_size        = 3
+  target_size        = 0
 
   lifecycle {
     ignore_changes = [
@@ -165,13 +165,14 @@ resource "google_compute_autoscaler" "web_server" {
   autoscaling_policy {
     max_replicas    = 3
     min_replicas    = 1
-    cooldown_period = 180
+    cooldown_period = 120
 
     cpu_utilization {
       target = 0.5
     }
   }
 }
+
 
 resource "google_compute_firewall" "worker_firewall" {
   name    = "worker-firewall"
@@ -256,7 +257,7 @@ resource "google_compute_instance_group_manager" "worker" {
   }
 
   base_instance_name = "autoscaler-worker"
-  target_size        = 3
+  target_size        = 1
 
   lifecycle {
     ignore_changes = [
@@ -273,7 +274,7 @@ resource "google_compute_autoscaler" "worker" {
   autoscaling_policy {
     max_replicas    = 3
     min_replicas    = 1
-    cooldown_period = 180
+    cooldown_period = 120
 
     cpu_utilization {
       target = 0.5

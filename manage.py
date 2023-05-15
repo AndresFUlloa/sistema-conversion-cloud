@@ -20,10 +20,13 @@ def run_worker():
         sub='compress-subscription',  # Set this to something appropriate.
     )
 
+    # Limit the subscriber to only have ten outstanding messages at a time.
+    flow_control = pubsub_v1.types.FlowControl(max_messages=7)
+
     LOGGER.info("Listening for messages on %s", subscription_name)
 
     with pubsub_v1.SubscriberClient() as subscriber:
-        future = subscriber.subscribe(subscription_name, run_compress_callback)
+        future = subscriber.subscribe(subscription_name, callback=run_compress_callback, flow_control=flow_control)
 
         try:
             future.result()

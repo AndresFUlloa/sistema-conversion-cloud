@@ -1,0 +1,308 @@
+{
+	"info": {
+		"_postman_id": "a2d83ae9-7a9a-4af9-8daa-7f0ed2192fb9",
+		"name": "Compressor API",
+		"description": "Api para la Conversion de archivos.\n\n**NOTA : para la ejecucion de las api por favor establecer el entorno actual al llamado \"Local\"**",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1827448",
+		"_collection_link": "https://warped-meadow-704292.postman.co/workspace/Arquitecturas~417b8c0d-f0e5-42b3-a0dc-ac35f516fa45/collection/1827448-a2d83ae9-7a9a-4af9-8daa-7f0ed2192fb9?action=share&creator=1827448&source=collection_link"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var data =  pm.response.json();",
+									"pm.environment.set('token', data.token);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"test\",\n    \"password\": \"123asd456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/auth/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Permite recuperar el token de autorización para consumir los recursos del API suministrando un nombre de usuario y una contraseña correcta de una cuenta registrada."
+					},
+					"response": []
+				},
+				{
+					"name": "Sign Up",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"test\",\n    \"password\": \"123asd456\",\n    \"password2\": \"123asd456\",\n    \"email\": \"test@mail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/auth/sign-up",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"sign-up"
+							]
+						},
+						"description": "Permite crear una cuenta de usuario, con los campos usuario, correo electrónico y contraseña. El usuario y el correo electrónico deben ser únicos en la plataforma, la contraseña debe seguir unos lineamientos mínimos de seguridad, además debe ser solicitada dos veces para que el usuario confirme que ingresa la contraseña correctamente."
+					},
+					"response": []
+				}
+			],
+			"description": "Contiene todos los endpoint necesarios para la identificación y/o autorización para los usuarios."
+		},
+		{
+			"name": "Tasks",
+			"item": [
+				{
+					"name": "Create Task",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/Users/jesusdiaz/Projects/Andes/sistema-conversion-cloud/locust/asana.pptx"
+								},
+								{
+									"key": "newFormat",
+									"value": "zip",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/api/tasks",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"tasks"
+							]
+						},
+						"description": "Permite crear una nueva tarea de conversión de formatos. El usuario requiere autorización."
+					},
+					"response": []
+				},
+				{
+					"name": "Health",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/health",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"health"
+							]
+						},
+						"description": "Permite crear una nueva tarea de conversión de formatos. El usuario requiere autorización."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tasks",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/tasks",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"tasks"
+							]
+						},
+						"description": "Permite recuperar todas las tareas de conversión de un usuario autorizado en la aplicación."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Task Info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/tasks/:id_task",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"tasks",
+								":id_task"
+							],
+							"variable": [
+								{
+									"key": "id_task",
+									"value": "14",
+									"description": "id de la tarea de la cual queremos obtener los datos"
+								}
+							]
+						},
+						"description": "Permite recuperar la información de una tarea en la aplicación. El usuario requiere autorización."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Task",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/tasks/:id_task",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"tasks",
+								":id_task"
+							],
+							"variable": [
+								{
+									"key": "id_task",
+									"value": "5",
+									"description": "id de la tarea a eliminar"
+								}
+							]
+						},
+						"description": "Permite eliminar una tarea en la aplicación. El usuario requiere autorización."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Original File",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/files/:filename",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"files",
+								":filename"
+							],
+							"variable": [
+								{
+									"key": "filename",
+									"value": "Asana y GTD",
+									"description": "nombre del archivo a consultar (sin extension)."
+								}
+							]
+						},
+						"description": "Permite recuperar el archivo original o procesado."
+					},
+					"response": []
+				}
+			],
+			"description": "Contiene todos los endponts relacionados con la gestion y consulta de las tareas (tasks)."
+		}
+	]
+}
