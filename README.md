@@ -57,6 +57,11 @@ docker-compose -f local.arm.test.yml up
 
 ### Locust
 
+In production
+```shell
+docker-compose -f production.locust.yml run -d -e SHAPE=LOGIN -p 8089:8089 --rm locust -f /mnt/locust/locustfile.py
+```
+
 Run login test
 
 ```shell
@@ -134,3 +139,6 @@ sudo docker run --env-file ./.envs/.local/.flask -e FLASK_APP="compressor.app:cr
 ```
 
 ![Diagram](./files/diagram.png)
+
+
+sudo docker run -d -p 80:5000 --env-file ./.envs/.local/.flask -e FLASK_APP="compressor.app:create_app" -e APP_SETTINGS="compressor.config.DevelopmentConfig" -e FLASK_DEBUG=1 ${local.web_api_image_uri} gunicorn -b 0.0.0.0:5000 --workers=5 --threads=2 --timeout=0 compressor.wsgi:app

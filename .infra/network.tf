@@ -15,13 +15,13 @@ resource "google_compute_backend_service" "web_server_backend" {
 resource "google_compute_health_check" "web_health_check" {
   name = "web-health-check"
 
-  timeout_sec         = 60
-  check_interval_sec  = 60
-  healthy_threshold   = 4
-  unhealthy_threshold = 5
+  timeout_sec         = 5
+  check_interval_sec  = 5
+  healthy_threshold   = 1
+  unhealthy_threshold = 2
 
   http_health_check {
-    port = "80"
+    port         = "80"
     request_path = "/api/health"
   }
 }
@@ -53,8 +53,6 @@ resource "google_compute_global_address" "web_server_static_ip" {
 resource "google_compute_global_forwarding_rule" "web_server_global_forwarding_rule" {
   name                  = "web-server-global-forwarding-rule"
   port_range            = "80"
-  ip_protocol           = "TCP"
-  load_balancing_scheme = "EXTERNAL"
   target                = google_compute_target_http_proxy.web_server_target_http_proxy.id
   ip_address            = google_compute_global_address.web_server_static_ip.id
 }

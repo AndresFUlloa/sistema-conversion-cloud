@@ -1,45 +1,56 @@
 import os
-from typing import Text
-
-from celery import shared_task
+import json
+import logging
 from compressor.extensions import db
 from compressor.models import Task, TaskStatus
 from compressor.utils.files import compress_files
 from google.cloud import storage
 
+from google.cloud import pubsub_v1
 
-@shared_task(ignore_result=False)
-def run_compress_job(path: Text, file_name: Text, compression_type:  Text, task_id: int, target_folder: Text) -> None:
-    task = Task.query.get_or_404(task_id)
 
-    client = storage.Client()
-    bucket = client.bucket(os.getenv("CLOUD_STORAGE_BUCKET"))
 
-    blob = bucket.blob(path)
-    temp_path = f'/temp/files/{target_folder}'
+LOGGER = logging.getLogger()
 
-    if not os.path.exists(temp_path):
-        os.makedirs(temp_path)
+def run_compress_callback(message: pubsub_v1.subscriber.message.Message) -> None:
+    from manage import current_app
+    with current_app.app_context():
+        message_data = message.data.decode('utf-8')
+        data_dict = json.loads(message_data)
 
-    temp_file_path = f'{temp_path}/{file_name}'
-    blob.download_to_filename(temp_file_path)
+        LOGGER.info("Received %s", data_dict)
 
-    result, content_type, filename = compress_files(
-        temp_path,
-        file_name,
-        compression_type
-    )
+        task = Task.query.get_or_404(data_dict['task_id'])
 
-    target_path = f"{target_folder}/{filename}"
-    blob = bucket.blob(target_path)
-    result_file = open(result, "rb")
-    blob.upload_from_string(
-        result_file.read(), content_type=content_type
-    )
+        client = storage.Client()
+        bucket = client.bucket(os.getenv("CLOUD_STORAGE_BUCKET"))
 
-    os.remove(temp_file_path)
-    os.remove(result)
+        blob = bucket.blob(data_dict['path'])
 
-    task.status = TaskStatus.PROCESSED
-    task.available = True
-    db.session.commit()
+        temp_file_path = f'/{data_dict["file_name"]}'
+        blob.download_to_filename(temp_file_path)
+
+        result, content_type, filename = compress_files(
+            "/",
+            data_dict["file_name"],
+            data_dict["compression_type"]
+        )
+
+        target_path = f"{data_dict['target_folder']}/{filename}"
+        blob = bucket.blob(target_path)
+        result_file = open(result, "rb")
+        blob.upload_from_string(
+            result_file.read(), content_type=content_type
+        )
+
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+
+        if os.path.exists(result):
+            os.remove(result)
+
+        task.status = TaskStatus.PROCESSED
+        task.available = True
+        db.session.commit()
+
+        message.ack()

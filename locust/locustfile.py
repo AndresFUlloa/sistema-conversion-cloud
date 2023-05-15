@@ -53,7 +53,7 @@ elif os.environ["SHAPE"] == "CREATE_TASK":
             data  = MultipartEncoder(
                 fields={
                     'newFormat': 'zip',
-                    'file': ("Asana y GTD.pptx", open(file_path, 'rb'), 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
+                    'file': ("asana.pptx", open(file_path, 'rb'), 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
                 }
             )
 
