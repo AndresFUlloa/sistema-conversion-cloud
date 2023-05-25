@@ -3,21 +3,16 @@ resource "google_pubsub_topic" "compress" {
 }
 
 resource "google_pubsub_subscription" "compress" {
-  name  = "compress-subscription"
+  name  = "compress_subscription"
   topic = google_pubsub_topic.compress.name
-
-  # 20 minutes
-  message_retention_duration = "1200s"
-  retain_acked_messages      = true
-
-  ack_deadline_seconds = 20
-
-  expiration_policy {
-    ttl = "300000.5s"
+  push_config {
+    push_endpoint = "${google_cloud_run_service.worker.status[0].url}/api/compress-worker"
+    oidc_token {
+      service_account_email = google_service_account.allow_zipped_app.email
+    }
+    attributes = {
+      x-goog-version = "v1"
+    }
   }
-  retry_policy {
-    minimum_backoff = "10s"
-  }
-
-  enable_message_ordering = false
+  depends_on = [google_cloud_run_service.worker]
 }

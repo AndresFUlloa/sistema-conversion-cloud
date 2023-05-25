@@ -22,3 +22,5 @@ COPY compressor compressor/
 COPY manage.py ./manage.py
 COPY migrations migrations/
 EXPOSE 5000
+
+CMD exec gunicorn -b 0.0.0.0:5000 --workers 1 --thread6s 8 --timeout 0  compressor.wsgi:app

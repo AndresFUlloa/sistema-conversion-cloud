@@ -1,5 +1,9 @@
 output "webserver_public_ip" {
-  value = google_compute_global_address.web_server_static_ip.address
+  value = google_cloud_run_service.web.status[0].url
+}
+
+output "worker_public_ip" {
+  value = google_cloud_run_service.worker.status[0].url
 }
 
 output "locust_public_ip" {

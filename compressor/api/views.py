@@ -1,6 +1,7 @@
 import logging
 import os
 import json
+import base64
 from google.cloud import pubsub_v1
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from flask_restful import Api, Resource
@@ -11,6 +12,8 @@ from compressor.extensions import db
 from compressor.models import User, Task, TaskStatus
 from marshmallow import ValidationError
 from google.cloud import storage
+
+from compressor.utils.files import compress_files
 
 LOGGER = logging.getLogger()
 
@@ -203,6 +206,63 @@ class FilesView(Resource):
         #attachment_filename=file_name)
 
 
+class CompressWorkerView(Resource):
+    @staticmethod
+    def post():
+        json_data = request.get_json()
+
+        if not json_data:
+            msg = "no Pub/Sub message received"
+            return f"Bad Request: {msg}", 400
+
+        if not isinstance(json_data, dict) or "message" not in json_data:
+            msg = "invalid Pub/Sub message format"
+            return f"Bad Request: {msg}", 400
+
+        pubsub_message = json_data["message"]
+
+        if isinstance(pubsub_message, dict) and "data" in pubsub_message:
+            data_dict = json.loads(base64.b64decode(pubsub_message["data"]).decode("utf-8"))
+
+            LOGGER.info("Received %s", data_dict)
+
+            task = Task.query.get_or_404(data_dict['task_id'])
+
+            client = storage.Client()
+            bucket = client.bucket(os.getenv("CLOUD_STORAGE_BUCKET"))
+
+            blob = bucket.blob(data_dict['path'])
+
+            temp_file_path = f'/{data_dict["file_name"]}'
+            blob.download_to_filename(temp_file_path)
+
+            result, content_type, filename = compress_files(
+                "/",
+                data_dict["file_name"],
+                data_dict["compression_type"]
+            )
+
+            target_path = f"{data_dict['target_folder']}/{filename}"
+            blob = bucket.blob(target_path)
+            result_file = open(result, "rb")
+            blob.upload_from_string(
+                result_file.read(), content_type=content_type
+            )
+
+            if os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
+
+            if os.path.exists(result):
+                os.remove(result)
+
+            task.status = TaskStatus.PROCESSED
+            task.available = True
+            db.session.commit()
+
+            return "", 204
+        return "Bad Request", 400
+
+
 def initialize_routes(api):
     api.add_resource(HealthView, '/health')
 
@@ -213,3 +273,5 @@ def initialize_routes(api):
     api.add_resource(TaskView, '/tasks/<int:task_id>')
 
     api.add_resource(FilesView, '/files/<string:file_name>')
+
+    api.add_resource(CompressWorkerView, '/compress-worker')
