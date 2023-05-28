@@ -54,19 +54,6 @@ resource "google_storage_bucket_iam_member" "allow_zipped_app" {
   member = "serviceAccount:${google_service_account.allow_zipped_app.email}"
 }
 
-resource "google_compute_firewall" "web_server_firewall" {
-  name    = "web-server-firewall"
-  network = "default"
-
-  allow {
-    protocol = "tcp"
-    ports    = ["22", "80", "5000"]
-  }
-
-  source_ranges = ["0.0.0.0/0"]
-  target_tags   = google_compute_instance_template.web_server.tags
-}
-
 data "google_compute_image" "debian" {
   family  = "debian-10"
   project = "debian-cloud"
@@ -82,7 +69,7 @@ resource "google_cloud_run_service_iam_binding" "binding" {
   location = google_cloud_run_service.web.location
   service  = google_cloud_run_service.web.name
   role     = "roles/run.invoker"
-  members  = ["serviceAccount:${google_service_account.allow_zipped_app.email}"]
+  members  = ["allUsers"]
 }
 
 
@@ -104,18 +91,11 @@ resource "google_cloud_run_service" "web" {
 
   template {
     spec {
-
       containers {
         image = local.web_api_image_uri
 
         ports {
           container_port = 5000
-        }
-
-        liveness_probe {
-          http_get {
-            path = "/api/health"
-          }
         }
 
         env {
@@ -164,7 +144,7 @@ resource "google_cloud_run_service" "web" {
         }
 
         env {
-          name  = "POSTGRES_PASSWORD"
+          name  = "GOOGLE_CLOUD_PROJECT"
           value = local.project_id
         }
       }
@@ -177,6 +157,13 @@ resource "google_cloud_run_service" "web" {
   }
 
   depends_on = [google_project_service.cloudrun_api]
+}
+
+resource "google_cloud_run_service_iam_binding" "worker_binding" {
+  location = google_cloud_run_service.worker.location
+  service  = google_cloud_run_service.worker.name
+  role     = "roles/run.invoker"
+  members  = ["allUsers"]
 }
 
 resource "google_cloud_run_service" "worker" {
@@ -193,12 +180,6 @@ resource "google_cloud_run_service" "worker" {
           container_port = 5000
         }
 
-        liveness_probe {
-          http_get {
-            path = "/api/health"
-          }
-        }
-
         env {
           name  = "FLASK_APP"
           value = "compressor.app:create_app"
@@ -245,7 +226,7 @@ resource "google_cloud_run_service" "worker" {
         }
 
         env {
-          name  = "POSTGRES_PASSWORD"
+          name  = "GOOGLE_CLOUD_PROJECT"
           value = local.project_id
         }
       }
@@ -304,7 +285,7 @@ resource "google_compute_instance" "locust" {
       gnupg2 \
       gnupg-agent \
       software-properties-common \
-      unzip \s
+      unzip \
       nfs-common
 
     curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
